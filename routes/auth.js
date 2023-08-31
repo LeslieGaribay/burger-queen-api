@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-
 const { secret } = config;
 
 /** @module auth */
@@ -34,3 +33,6 @@ module.exports = (app, nextMain) => {
 
   return nextMain();
 };
+
+
+//aprender a hacer llamada a la base de datos mongodb y docker
