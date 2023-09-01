@@ -32,5 +32,3 @@ module.exports = (app, next) => register(app, [
   root,
 ], next);
 
-
-console.log('Hola Yenn')

@@ -16,17 +16,25 @@ module.exports = (app, nextMain) => {
    * @code {400} si no se proveen `email` o `password` o ninguno de los dos
    * @auth No requiere autenticación
    */
-  app.post('/auth', (req, resp, next) => {
-    const { email, password } = req.body;
+  app.post('/auth', (request, response, next) => {
+    const { email, password } = request.body;
 
     if (!email || !password) {
       return next(400);
     }
-
+    console.log("jejejeje");
     // TODO: autenticar a la usuarix
     // Hay que confirmar si el email y password
     // coinciden con un user en la base de datos
     // Si coinciden, manda un access token creado con jwt
+    if (email === "holamundo@hola.com" && password === "Password123") {
+      var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
+      response
+        .status(200)
+        .send({
+          token
+        });
+    }
 
     next();
   });
