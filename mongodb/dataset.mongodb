@@ -1,0 +1,10 @@
+// MongoDB Playground
+// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
+
+// The current database to use.
+use('burger_queen');
+
+// Create a new document in the collection.
+db.getCollection('users').insertMany([
+    { _id: 2, email: "holamundo2@hola.com", password: "Password234", role: "admin" }
+]);

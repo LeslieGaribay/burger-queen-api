@@ -1,6 +1,11 @@
 const jwt = require('jsonwebtoken');
+const { MongoClient } = require('mongodb');
 const config = require('../config');
 const { secret } = config;
+
+
+const MONGODB_URI = 'mongodb://localhost:27017';
+const client = new MongoClient(MONGODB_URI);
 
 /** @module auth */
 module.exports = (app, nextMain) => {
@@ -16,7 +21,7 @@ module.exports = (app, nextMain) => {
    * @code {400} si no se proveen `email` o `password` o ninguno de los dos
    * @auth No requiere autenticación
    */
-  app.post('/auth', (request, response, next) => {
+  app.post('/auth', async (request, response, next) => {
     const { email, password } = request.body;
 
     if (!email || !password) {
@@ -27,7 +32,8 @@ module.exports = (app, nextMain) => {
     // Hay que confirmar si el email y password
     // coinciden con un user en la base de datos
     // Si coinciden, manda un access token creado con jwt
-    if (email === "holamundo@hola.com" && password === "Password123") {
+    const user = await getUser(email);
+    if (user?.email === email && user?.password === password) {
       // TODO: Traer usuario de la base de datos
       var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
       response
@@ -43,6 +49,23 @@ module.exports = (app, nextMain) => {
 
     next();
   });
+  async function getUser(email) {
+    try {
+      const database = client.db("burger_queen");
+      const users = database.collection("users");
+      // Query for a movie that has the title 'The Room'
+      const query = { email };
+
+      const user = await users.findOne(query);
+      // since this method returns the matched document, not a cursor, print it directly
+      console.log(user);
+      return user;
+    } catch(e) {
+      console.log(e)
+    } finally {
+      await client.close();
+    }
+  }
 
   
   app.get('/validateToken', (request, response, next) => {
