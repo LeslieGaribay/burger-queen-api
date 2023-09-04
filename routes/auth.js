@@ -28,16 +28,58 @@ module.exports = (app, nextMain) => {
     // coinciden con un user en la base de datos
     // Si coinciden, manda un access token creado con jwt
     if (email === "holamundo@hola.com" && password === "Password123") {
+      // TODO: Traer usuario de la base de datos
       var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
       response
         .status(200)
         .send({
           token
         });
+    } else {
+      response
+        .status(401)
+        .send("Invalid user or password");
     }
 
     next();
   });
+
+  
+  app.get('/validateToken', (request, response, next) => {
+    const authorization = request.get('authorization');
+
+
+    try {
+      if (jwt.verify(authorization, 'shhhhh')) {
+        response
+          .status(200)
+          .send({
+            message: "Your token is valid! 🥳🐵"
+          });
+      } else {
+        response
+          .status(401)
+          .send({
+            message: "Your token is invalid 🙈"
+          });
+      }
+    } catch(exception) {
+      if (exception.name === 'JsonWebTokenError') {
+        response
+        .status(401)
+        .send({
+          message: "Your token is invalid 😠😒"
+        });
+      } else {
+        throw exception;
+      }
+
+      console.log(exception);
+    }
+
+    next();
+  });
+
 
   return nextMain();
 };
