@@ -1,11 +1,8 @@
 const jwt = require('jsonwebtoken');
-const { MongoClient } = require('mongodb');
+const {  mongoConnect, mongoClose } = require('../connect');
 const config = require('../config');
 const { secret } = config;
 
-
-const MONGODB_URI = 'mongodb://localhost:27017';
-const client = new MongoClient(MONGODB_URI);
 
 /** @module auth */
 module.exports = (app, nextMain) => {
@@ -34,7 +31,6 @@ module.exports = (app, nextMain) => {
     // Si coinciden, manda un access token creado con jwt
     const user = await getUser(email);
     if (user?.email === email && user?.password === password) {
-      // TODO: Traer usuario de la base de datos
       var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
       response
         .status(200)
@@ -46,13 +42,13 @@ module.exports = (app, nextMain) => {
         .status(401)
         .send("Invalid user or password");
     }
-
-    next();
   });
   async function getUser(email) {
     try {
-      const database = client.db("burger_queen");
+      const database = await mongoConnect();
       const users = database.collection("users");
+      const products = database.collection("products");
+      
       // Query for a movie that has the title 'The Room'
       const query = { email };
 
@@ -63,14 +59,13 @@ module.exports = (app, nextMain) => {
     } catch(e) {
       console.log(e)
     } finally {
-      await client.close();
+      mongoClose();
     }
   }
 
   
   app.get('/validateToken', (request, response, next) => {
     const authorization = request.get('authorization');
-
 
     try {
       if (jwt.verify(authorization, 'shhhhh')) {
