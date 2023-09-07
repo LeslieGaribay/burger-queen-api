@@ -31,7 +31,7 @@ module.exports = (app, nextMain) => {
     // Si coinciden, manda un access token creado con jwt
     const user = await getUser(email);
     if (user?.email === email && user?.password === password) {
-      var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
+      var token = jwt.sign({ foo: 'bar' }, secret);
       response
         .status(200)
         .send({
@@ -68,7 +68,7 @@ module.exports = (app, nextMain) => {
     const authorization = request.get('authorization');
 
     try {
-      if (jwt.verify(authorization, 'shhhhh')) {
+      if (jwt.verify(authorization, secret)) {
         response
           .status(200)
           .send({
