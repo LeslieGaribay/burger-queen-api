@@ -1,7 +1,14 @@
+const bcrypt = require('bcrypt');
+
 const {
   requireAuth,
   requireAdmin,
 } = require('../middleware/auth');
+
+const {
+  getProducts,
+  addProduct,
+} = require('../controller/products-controller');
 
 /** @module products */
 module.exports = (app, nextMain) => {
@@ -28,6 +35,8 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    */
   app.get('/products', requireAuth, (req, resp, next) => {
+
+    
   });
 
   /**
@@ -72,7 +81,41 @@ module.exports = (app, nextMain) => {
    * @code {403} si no es admin
    * @code {404} si el producto con `productId` indicado no existe
    */
-  app.post('/products', requireAdmin, (req, resp, next) => {
+  app.post('/products', requireAdmin, async (request, response, next) => {
+
+    const { name, price, type } = request.body;
+
+    try {
+      if (!name || !price || !type) {
+        return responsepodemos
+          .status(400)
+          .json({ message: 'Todos los campos son requeridos' });
+      }
+
+      const newProduct = {
+        name,
+        price,
+        type,
+      };
+
+      const result = await addProduct(newProduct);
+
+      if (result.insertedId) {
+        return response
+          .status(201)
+          .json({ message: "Producto agregado con éxito" });
+        // si no rechaza peticion indicar el error
+      } else {
+        return response
+          .status(400)
+          .json({ message: "Ha fallado la inserción" });
+      }
+    } catch (error) {
+      console.error("Error al agregar el producto: " + error);
+      return response
+        .status(500)
+        .json({ message: "Error agregando el producto", error: error.message });
+    }
   });
 
   /**
