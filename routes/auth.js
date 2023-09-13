@@ -101,7 +101,7 @@ module.exports = (app, nextMain) => {
                 response
                     .status(401)
                     .send({
-                        message: "Your token is invalid 😠😒"
+                        message: "Your token is invalid 😒"
                     });
             } else {
                 throw exception;
@@ -116,7 +116,6 @@ module.exports = (app, nextMain) => {
 
     return nextMain();
 };
-
 
             // TODO: autenticar a la usuarix
             // Hay que confirmar si el email y password
