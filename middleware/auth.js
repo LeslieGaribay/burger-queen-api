@@ -1,30 +1,32 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+const AppError = require('../errors/app-error');
+
 module.exports = (secret) => (req, resp, next) => {
     const { authorization } = req.headers;
 
     if (!authorization) {
-        return next();
+        return next(); // Continuar al siguiente middleware sin enviar una respuesta
     }
 
     const [type, token] = authorization.split(' ');
 
     if (type.toLowerCase() !== 'bearer') {
-        return next();
+        return next(); // Continuar al siguiente middleware sin enviar una respuesta
     }
 
     jwt.verify(token, secret, (err, decodedToken) => {
         if (err) {
-            return next(403);
+            return next(new AppError(403,'No autorizado')); // Usar un objeto Error con mensaje
         }
-        return next();
-        // TODO: Verificar identidad del usuario usando `decodeToken.uid`
-
+        return next(); // Continuar al siguiente middleware sin enviar una respuesta
     });
 };
 
+
+
 module.exports.isAuthenticated = (req) => {
-    // TODO: decidir por la informacion del request si la usuaria esta autenticada
+    
     // Verifica si el token está presente y es válido
     const authorization = req.headers.authorization;
     if (!authorization) {
@@ -40,7 +42,6 @@ module.exports.isAuthenticated = (req) => {
 };
 
 module.exports.isAdmin = (req) => {
-    // TODO: decidir por la informacion del request si la usuaria es admin
     // Verifica si el usuario tiene el rol de "admin" en el token
     const authorization = req.headers.authorization;
     if (!authorization) {
@@ -61,15 +62,15 @@ module.exports.isAdmin = (req) => {
 
 module.exports.requireAuth = (req, resp, next) => (
     (!module.exports.isAuthenticated(req))
-        ? next(401)
+        ? next(new AppError(401,'No autenticado'))
         : next()
 );
 
 module.exports.requireAdmin = (req, resp, next) => (
     // eslint-disable-next-line no-nested-ternary
     (!module.exports.isAuthenticated(req))
-        ? next(401)
+        ? next(new AppError(401, 'No autenticado'))
         : (!module.exports.isAdmin(req))
-            ? next(403)
-            : next()
+        ? next(new AppError(403, 'No autorizado'))
+        : next()
 );
