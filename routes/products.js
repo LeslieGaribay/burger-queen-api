@@ -8,6 +8,9 @@ const {
 const {
   getProducts,
   addProduct,
+  getProduct,
+  deleteProduct,
+  updateProduct
 } = require('../controller/products-controller');
 
 /** @module products */
@@ -62,7 +65,7 @@ module.exports = (app, nextMain) => {
    */
   app.get('/products/:productId', requireAuth, async (request, response, next) => {
     try {
-      const product = await product.findById(request.params.id); // *Product*
+      const product = await getProduct(request.params.productId);
 
       if (!product) {
         return response.status(404).json({ error: 'Producto no encontrado '});
@@ -157,7 +160,7 @@ module.exports = (app, nextMain) => {
    */
   app.put('/products/:productId', requireAdmin, async (request, response, next) => {
     try {
-      const updatedProduct = await product.findByIdAndUpdate(  // *Product*
+      const updatedProduct = await updateProduct(  // *Product*
         request.params.id,
         request.body,
         { new: true }
@@ -194,7 +197,7 @@ module.exports = (app, nextMain) => {
    */
   app.delete('/products/:productId', requireAdmin, async (request, response, next) => {
     try {
-      const deletedProduct = await product.findByIdAndRemove(request.params.id); // *Product*
+      const deletedProduct = await deleteProduct(request.params.id); // *Product*
 
       if (!deletedProduct) {
         return response.status(404).json({ error: 'Producto no encontrado' });

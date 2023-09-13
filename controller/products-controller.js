@@ -1,4 +1,5 @@
 const { mongoConnect, mongoClose } = require('../connect');
+const { ObjectId } = require('mongodb');
 module.exports = {
   getProducts: async () => {
     try {
@@ -33,15 +34,46 @@ module.exports = {
       const products = database.collection("products");
 
       // Consulta para encontrar el producto por ID
-      const query = { id };
+      const query = {
+        "_id": new ObjectId(id)
+      };
       const product = await products.findOne(query);
       console.log(product);
       return product;
     } catch (error) {
-      console.log('Error al buscar el produto: ' + error.message);
+      console.log('Error al buscar el producto: ' + error.message);
       throw error;
     } finally {
       await mongoClose();
     }
-  }
+  },
+
+  updateProduct: async (product) => {
+    try {
+      const database = await mongoConnect();
+      const products = database.collection("products");
+      const result = await products.updateOne(product);
+      return result;
+    } catch (error) {
+      console.error('Error al editar el producto:', error);
+      throw error;
+    } finally {
+      await mongoClose();
+    }
+  },
+
+  deleteProduct: async (product) => {
+    try {
+      const database = await mongoConnect();
+      const products = database.collection("products");
+      const result = await products.deleteOne(product);
+      return result;
+    } catch (error) {
+      console.error('Error al eliminar el producto:', error);
+      throw error;
+    } finally {
+      await mongoClose();
+    }
+  },
+
 };
