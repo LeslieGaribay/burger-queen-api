@@ -125,7 +125,7 @@ module.exports = (app, next) => {
         try {
             // Validar datos
             if (!name || !email || !password || !role) {
-                return responsepodemos
+                return response
                     .status(400)
                     .json({ message: 'Todos los campos son requeridos' });
             }
