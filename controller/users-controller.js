@@ -4,7 +4,7 @@ const AppError = require('../errors/app-error');
 const { ObjectId } = require('mongodb');
 
 module.exports = {
-  addUser: async (user) => {
+  async addUser(user) {
     try {
       const database = await mongoConnect();
       const users = database.collection("users");
@@ -29,7 +29,8 @@ module.exports = {
       await mongoClose();
     }
   },
-  getUsers: async () => {
+
+  async getUsers() {
     try {
       const database = await mongoConnect();
       const users = database.collection("users");
@@ -41,7 +42,8 @@ module.exports = {
       mongoClose();
     }
   },
-  getUser: async (id) => {
+
+  async getUser(id) {
     try {
       const database = await mongoConnect();
       const users = database.collection('users');
@@ -60,7 +62,8 @@ module.exports = {
       await mongoConnect();
     }
   },
-  updateUser: async (id, updatedUserData) => {
+
+  async updateUser(id, updatedUserData) {
     try {
       const database = await mongoConnect();
       const users = database.collection("users");
@@ -93,7 +96,8 @@ module.exports = {
       mongoClose();
     }
   },
-  deleteUser: async (id) => {
+
+  async deleteUser(id) {
     try {
       const database = await mongoConnect();
       const users = database.collection("users");
@@ -110,4 +114,4 @@ module.exports = {
       mongoClose();
     }
   }
-}
+};
