@@ -48,11 +48,14 @@ module.exports = {
     }
   },
 
-  updateProduct: async (product) => {
+  updateProduct: async (productId, product) => {
     try {
       const database = await mongoConnect();
       const products = database.collection("products");
-      const result = await products.updateOne(product);
+      const query = {
+        "_id": new ObjectId(productId)
+      };
+      const result = await products.updateOne(query, {"$set": product});
       return result;
     } catch (error) {
       console.error('Error al editar el producto:', error);

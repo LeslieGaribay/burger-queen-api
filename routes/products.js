@@ -104,7 +104,7 @@ module.exports = (app, nextMain) => {
 
     try {
       if (!name || !price || !type) {
-        return responsepodemos
+        return response
           .status(400)
           .json({ message: 'Todos los campos son requeridos' });
       }
@@ -160,10 +160,10 @@ module.exports = (app, nextMain) => {
    */
   app.put('/products/:productId', requireAdmin, async (request, response, next) => {
     try {
-      const updatedProduct = await updateProduct(  // *Product*
-        request.params.id,
+      console.log(request.body)
+      const updatedProduct = await updateProduct(
+        request.params.productId,
         request.body,
-        { new: true }
       );
 
       if (!updatedProduct) {
