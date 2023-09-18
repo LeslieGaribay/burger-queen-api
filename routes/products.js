@@ -104,7 +104,7 @@ module.exports = (app, nextMain) => {
 
     try {
       if (!name || !price || !type) {
-        return responsepodemos
+        return response
           .status(400)
           .json({ message: 'Todos los campos son requeridos' });
       }
