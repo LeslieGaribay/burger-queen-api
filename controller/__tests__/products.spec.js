@@ -24,7 +24,6 @@ describe('getProducts', () => {
     }
     getProductsMock.mockRestore();
   });
-
 });
 
 describe('addProduct', () => {
@@ -64,7 +63,7 @@ describe('getProduct', () => {
   it('debería obtener un producto por ID', async () => {
     const getProductMock = jest.spyOn(productsController, 'getProduct').mockResolvedValue({ _id: '123', name: 'Nombre de producto' });
 
-    const productId = "65010275b21e856cd2f23e58";
+    const productId = '65010275b21e856cd2f23e58';
     const product = await productsController.getProduct(productId);
 
     expect(product).toBeDefined();
@@ -76,7 +75,7 @@ describe('getProduct', () => {
   it('debería manejar errores al obtener un producto', async () => {
     const getProductMock = jest.spyOn(productsController, 'getProduct').mockRejectedValue(new Error('Error simulado al obtener producto'));
 
-    const invalidId = "65010275b21e8";
+    const invalidId = '65010275b21e8';
 
     try {
       await productsController.getProduct(invalidId);
@@ -91,7 +90,7 @@ describe('updateProduct', () => {
   it('debería actualizar un producto existente', async () => {
     const updateProductMock = jest.spyOn(productsController, 'updateProduct').mockResolvedValue({ modifiedCount: 1 });
 
-    const productId = "65010275b21e856cd2f23e58";
+    const productId = '65010275b21e856cd2f23e58';
     const updatedProductData = {
       _id: productId,
       name: 'Nombre actualizado',
@@ -108,7 +107,7 @@ describe('updateProduct', () => {
   it('debería manejar errores al actualizar un producto', async () => {
     const updateProductMock = jest.spyOn(productsController, 'updateProduct').mockRejectedValue(new Error('Error simulado al actualizar producto'));
 
-    const invalidId = "0";
+    const invalidId = '0';
 
     try {
       await productsController.updateProduct(invalidId, {});
@@ -123,7 +122,7 @@ describe('deleteProduct', () => {
   it('debería eliminar un producto', async () => {
     const deleteProductMock = jest.spyOn(productsController, 'deleteProduct').mockResolvedValue({ deletedCount: 1 });
 
-    const productId = "650104c2b21e856cd2f23e5b";
+    const productId = '650104c2b21e856cd2f23e5b';
     const result = await productsController.deleteProduct(productId);
 
     expect(result.deletedCount).toBe(1);
@@ -133,7 +132,7 @@ describe('deleteProduct', () => {
   it('debería manejar errores al eliminar un producto', async () => {
     const deleteProductMock = jest.spyOn(productsController, 'deleteProduct').mockRejectedValue(new Error('Error simulado al eliminar producto'));
 
-    const invalidId = "650102";
+    const invalidId = '650102';
 
     try {
       await productsController.deleteProduct(invalidId);
@@ -143,4 +142,3 @@ describe('deleteProduct', () => {
     deleteProductMock.mockRestore();
   });
 });
-
