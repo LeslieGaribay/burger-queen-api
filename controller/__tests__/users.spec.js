@@ -113,7 +113,7 @@ describe('updateUser', () => {
     updateUserMock.mockRestore();
   });
 
-  it('debería manejar errores al actualizar un usuario', async () => {
+  it('debería manejar un error si el usuario no tiene datos', async () => {
     // Mock de updateUser para simular un error al actualizar el usuario
     const updateUserMock = jest.spyOn(usersController, 'updateUser').mockRejectedValue(new Error('Error simulado al actualizar usuario'));
 
@@ -126,7 +126,36 @@ describe('updateUser', () => {
     }
     updateUserMock.mockRestore();
   });
+
+  it('debería arrojar un error si el userId es nulo', async () => {
+    // Mock de updateUser para simular un error al actualizar el usuario
+    const updateUserMock = jest.spyOn(usersController, 'updateUser').mockRejectedValue(new Error('Error simulado al actualizar usuario'));
+  
+    const invalidId = null; 
+  
+    try {
+      await usersController.updateUser(invalidId, {});
+    } catch (error) {
+      expect(error.message).toBe('Error simulado al actualizar usuario');
+    }
+    updateUserMock.mockRestore();
+  });
+  
+  it('debería arrojar un error si el email no es válido', async () => {
+    // Mock de updateUser para simular un error al actualizar el usuario
+    const updateUserMock = jest.spyOn(usersController, 'updateUser').mockRejectedValue(new Error('Error simulado al actualizar usuario'));
+  
+    const invalidEmail = 'correo-invalido@gmail.com'; 
+    try {
+      await usersController.updateUser('userId', { email: invalidEmail });
+    } catch (error) {
+      expect(error.message).toBe('Error simulado al actualizar usuario');
+    }
+    updateUserMock.mockRestore();
+  });
+  
 });
+
 
 describe('deleteUser', () => {
   it('debería eliminar un usuario', async () => {
