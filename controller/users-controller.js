@@ -63,47 +63,61 @@ module.exports = {
     }
   },
 
-  async updateUser(id, updatedUserData) {
+  async updateUser(userId, userData) {
     try {
+      //Valida userid
+      if (!userId) {
+        throw new AppError(400, 'Id de usuario requerido');
+      }
+
+      // Valida update user data
+      if (!userData) {
+        throw new AppError(400, 'Se requiere la información del usuario');
+      }
+
       const database = await mongoConnect();
       const users = database.collection("users");
 
+      const query = {
+        "_id": new ObjectId(userId)
+      };
+
       // Validar el formato del email si se actualiza
-      if (updatedUserData.email && !validator.isEmail(updatedUserData.email)) {
+      if (!userData.email || !validator.isEmail(userData.email)) {
         throw new AppError(400, 'El email no es válido.');
       }
 
-      // Consulta para actualizar el usuario por ID
-      const query = {
-        "_id": new ObjectId(id)
-      };
-
       const update = {
         $set: {
-          name: updatedUserData.name,
-          email: updatedUserData.email,
-          password: updatedUserData.password,
-          role: updatedUserData.role
+          name: userData.name,
+          email: userData.email,
+          password: userData.password,
+          role: userData.role,
+          active: userData.active,
         }
       };
 
       const result = await users.updateOne(query, update);
-      return result;
+      if(!result.acknowledged || !result.matchedCount) {
+        throw new AppError(404, 'Usuario no encontrado');
+      }
+      existingUser = await users.findOne(query);
+      return existingUser;
     } catch (error) {
-      console.error('Error al actualizar usuario:', error);
+      console.error('Error al actualizar usuario: ' + error);
       throw error;
     } finally {
       mongoClose();
     }
   },
 
-  async deleteUser(id) {
+  async deleteUser(userId) {
     try {
       const database = await mongoConnect();
       const users = database.collection("users");
       // Consulta para eliminar el usuario por ID
       const query = {
-        "_id": new ObjectId(id)
+        "_id": new ObjectId(userId)
       };
       const result = await users.deleteOne(query);
       return result;

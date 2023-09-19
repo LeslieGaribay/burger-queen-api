@@ -1,5 +1,8 @@
 const bcrypt = require('bcrypt');
 const {
+    verifyToken,
+    isAuthenticated,
+    isAdmin,
     requireAuth,
     requireAdmin,
 } = require('../middleware/auth');
@@ -7,6 +10,9 @@ const {
 const {
     getUsers,
     addUser,
+    getUser,
+    deleteUser,
+    updateUser,
 } = require('../controller/users-controller');
 
 const initAdminUser = (app, next) => {
@@ -77,8 +83,14 @@ module.exports = (app, next) => {
      * @code {401} si no hay cabecera de autenticación
      * @code {403} si no es ni admin
      */
-    app.get('/users', requireAdmin, getUsers);
-
+    app.get('/users', requireAdmin, async (req, res) => {
+        try {
+            const users = await getUsers();
+            res.json(users);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al obtener la lista de usuarios' })
+        };
+    });
     /**
      * @name GET /users/:uid
      * @description Obtiene información de una usuaria
@@ -95,7 +107,22 @@ module.exports = (app, next) => {
      * @code {403} si no es ni admin o la misma usuaria
      * @code {404} si la usuaria solicitada no existe
      */
-    app.get('/users/:uid', requireAuth, (req, resp) => {
+    app.get('/users/:id', requireAuth, async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const user = await getUser(id);
+
+            if (!user) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            if (req.user.email !== user.email && !req.user.roles.admin) {
+                return res.status(403).json({ error: 'No autorizado' });
+            }
+            res.json(user);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al obtener informacion del usuario' });
+        }
     });
 
     /**
@@ -118,7 +145,6 @@ module.exports = (app, next) => {
      * @code {403} si ya existe usuaria con ese `email`
      */
     app.post('/users', requireAdmin, async (require, response, next) => {
-        // TODO: implementar la ruta para agregar nuevos usuarios
         // Obtener los datos del nuevo usuario desde el cuerpo de la solicitud
         const { name, email, password, role } = require.body;
 
@@ -181,7 +207,25 @@ module.exports = (app, next) => {
      * @code {403} una usuaria no admin intenta de modificar sus `roles`
      * @code {404} si la usuaria solicitada no existe
      */
-    app.put('/users/:uid', requireAuth, (req, resp, next) => {
+    app.put('/users/:id', requireAuth, async (req, resp, next) => {
+        try {
+            console.log(req.body)
+            const user = await updateUser(
+                req.params.id,
+                req.body
+            );
+
+            if (!user) {
+                return resp.status(404).json({ error: 'Usuario no encontrado' });
+            }
+
+            resp
+                .status(201)
+                .json(user);
+
+        } catch (error) {
+            resp.status(500).json({ error: 'No se pudo actualizar el usuario' });
+        }
     });
 
     /**
@@ -200,8 +244,22 @@ module.exports = (app, next) => {
      * @code {403} si no es ni admin o la misma usuaria
      * @code {404} si la usuaria solicitada no existe
      */
-    app.delete('/users/:uid', requireAuth, (req, resp, next) => {
+    app.delete('/users/:id', requireAuth, async (req, resp, next) => {
+      try {
+        console.log(req.body);
+        const user = await deleteUser(req.params.id);
+    
+        if (!user) {
+          return resp.status(404).json({ error: 'Usuario no encontrado' });
+        }
+    
+        resp.status(200).json({ mensaje: 'Usuario eliminado con éxito' });
+    
+      } catch (error) {
+        resp.status(500).json({ error: 'No se pudo eliminar el usuario' });
+      }
     });
+    
 
     initAdminUser(app, next);
 };
