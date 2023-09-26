@@ -27,10 +27,6 @@ const initAdminUser = (app, next) => {
         roles: { admin: true },
     };
 
-    // TODO: crear usuaria admin
-    // Primero ver si ya existe adminUser en base de datos
-    // si no existe, hay que guardarlo
-
     next();
 };
 
