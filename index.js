@@ -18,7 +18,6 @@ app.set('pkg', pkg);
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json({limit: '1mb'}));
-app.use(express.static('C:/Users/Leslie/Documents/Laboratoria/DEV008-burger-queen/burger-queen-api/img-data/'));
 
 // Configura el middleware de autenticación antes de las rutas
 app.use(authMiddleware(secret));
