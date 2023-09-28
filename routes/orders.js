@@ -33,12 +33,12 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    */
   app.get('/orders', requireAuth, async (req, resp, next) => {
-    try{
+    try {
       const orders = await ordersController.getOrders();
       resp.
-      status(200)
-      .json(orders);
-    } catch(error) {
+        status(200)
+        .json(orders);
+    } catch (error) {
       next(error);
     }
   });
@@ -66,20 +66,20 @@ module.exports = (app, nextMain) => {
    */
   app.get('/orders/:orderId', requireAuth, async (req, resp, next) => {
     const { orderId } = req.params;
-    try{
+    try {
       const order = await ordersController.getOrders(orderId);
-      if(!order) {
-      resp.
-      status(404)
-      .send('Orden no encontrada');
+      if (!order) {
+        resp.
+          status(404)
+          .send('Orden no encontrada');
       } else {
         resp.status(200)
-        .json(order);
+          .json(order);
       }
-    } catch(error) {
+    } catch (error) {
       next(error);
-  }
-});
+    }
+  });
   /**
    * @name POST /orders
    * @description Crea una nueva orden
