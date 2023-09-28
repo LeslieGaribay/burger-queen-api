@@ -25,6 +25,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^5.8.1",
     "mongodb-memory-server": "^8.15.1",
+    "uuid": "^9.0.1",
     "validator": "^13.11.0"
   },
   "devDependencies": {

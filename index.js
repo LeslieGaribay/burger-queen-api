@@ -17,7 +17,7 @@ app.set('pkg', pkg);
 
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.json({limit: '1mb'}));
 
 // Configura el middleware de autenticación antes de las rutas
 app.use(authMiddleware(secret));

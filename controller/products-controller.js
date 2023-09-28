@@ -1,5 +1,7 @@
 const { mongoConnect, mongoClose } = require('../connect');
 const { ObjectId } = require('mongodb');
+const { saveImageLocally } = require('../business-logic/products-business-logic');
+
 module.exports = {
   getProducts: async () => {
     try {
@@ -38,7 +40,6 @@ module.exports = {
         "_id": new ObjectId(id)
       };
       const product = await products.findOne(query);
-      console.log(product);
       return product;
     } catch (error) {
       console.log('Error al buscar el producto: ' + error.message);
@@ -50,6 +51,9 @@ module.exports = {
 
   updateProduct: async (productId, product) => {
     try {
+      const imageName = await saveImageLocally(product.image);
+      product.image = imageName;
+
       const database = await mongoConnect();
       const products = database.collection("products");
       const query = {
@@ -66,6 +70,7 @@ module.exports = {
   },
 
   deleteProduct: async (product) => {
+    
     try {
       const database = await mongoConnect();
       const products = database.collection("products");
