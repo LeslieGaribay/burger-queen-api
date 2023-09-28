@@ -27,7 +27,7 @@ describe('createOrder', () => {
     };
 
     // Llama a la función createOrder
-    const createdOrder = await orderController.createOrder(orderToCreate, waiterUser);
+    const createdOrder = await ordersController.createOrder(orderToCreate, waiterUser);
 
     // Verifica que la orden haya sido creada exitosamente
     expect(createdOrder).toBeDefined();
