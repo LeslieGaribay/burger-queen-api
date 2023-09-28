@@ -1,19 +1,21 @@
 const { mongoConnect, mongoClose } = require('../connect');
 const { ObjectId } = require('mongodb');
 module.exports = {
-  getProducts: async () => {
+  getProducts: async (type) => {
     try {
       const database = await mongoConnect();
       const products = database.collection("products");
-      return await products.find().toArray();
+     
+      const filter = type ? { type } : {};
+      return await products.find(filter).toArray();
     } catch (error) {
-      console.error('Error al agregar el producto:', error);
+      console.error('Error al obtener los productos:', error);
       throw error;
     } finally {
       mongoClose();
     }
   },
-  
+
   addProduct: async (product) => {
     try {
       const database = await mongoConnect();

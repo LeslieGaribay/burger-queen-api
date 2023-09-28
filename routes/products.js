@@ -1,5 +1,3 @@
-const bcrypt = require('bcrypt');
-
 const {
   requireAuth,
   requireAdmin,
@@ -38,11 +36,13 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    */
   app.get('/products', requireAuth, async (request, response, next) => {
+    const { type } = request.query;
+    
     try {
-      const products = await getProducts();
+      const products = await getProducts(type);
       response.json(products);
     } catch (error) {
-      response.status(500).json({ error: 'No se pudieron obtener los productos '});
+      response.status(500).json({ error: 'No se pudieron obtener los productos'});
     }
   });
 
@@ -68,11 +68,11 @@ module.exports = (app, nextMain) => {
       const product = await getProduct(request.params.productId);
 
       if (!product) {
-        return response.status(404).json({ error: 'Producto no encontrado '});
+        return response.status(404).json({ error: 'Producto no encontrado'});
       }
       response.json(product);
     } catch (error) {
-      response.status(500).json({ error: 'No se pudo obtener el producto '});
+      response.status(500).json({ error: 'No se pudo obtener el producto'});
     }
   });
 
@@ -106,7 +106,7 @@ module.exports = (app, nextMain) => {
       if (!name || !price || !type) {
         return response
           .status(400)
-          .json({ message: 'Todos los campos son requeridos' });
+          .json({ message: 'Todos los campos son requeridos'});
       }
 
       const newProduct = {
@@ -120,18 +120,18 @@ module.exports = (app, nextMain) => {
       if (result.insertedId) {
         return response
           .status(201)
-          .json({ message: "Producto agregado con éxito" });
+          .json({ message: 'Producto agregado con éxito' });
         // si no rechaza peticion indicar el error
       } else {
         return response
           .status(400)
-          .json({ message: "Ha fallado la inserción" });
+          .json({ message: 'Ha fallado la inserción' });
       }
     } catch (error) {
-      console.error("Error al agregar el producto: " + error);
+      console.error('Error al agregar el producto: ' + error);
       return response
         .status(500)
-        .json({ message: "Error al agregar el producto", error: error.message });
+        .json({ message: 'Error al agregar el producto', error: error.message });
     }
   });
 
@@ -160,18 +160,15 @@ module.exports = (app, nextMain) => {
    */
   app.put('/products/:productId', requireAdmin, async (request, response, next) => {
     try {
-      console.log(request.body)
+      console.log(request.body);
       const updatedProduct = await updateProduct(
         request.params.productId,
         request.body,
       );
-
       if (!updatedProduct) {
         return response.status(404).json({ error: 'Producto no encontrado' });
       }
-
       response.json(updatedProduct);
-
     } catch (error) {
       response.status(500).json({ error: 'No se pudo actualizar el producto' });
     }
