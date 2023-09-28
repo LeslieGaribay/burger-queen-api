@@ -2,6 +2,8 @@ const {
   requireAuth,
 } = require('../middleware/auth');
 
+const ordersController = require('../controller/orders-controller');
+
 /** @module orders */
 module.exports = (app, nextMain) => {
   /**
@@ -30,7 +32,15 @@ module.exports = (app, nextMain) => {
    * @code {200} si la autenticación es correcta
    * @code {401} si no hay cabecera de autenticación
    */
-  app.get('/orders', requireAuth, (req, resp, next) => {
+  app.get('/orders', requireAuth, async (req, resp, next) => {
+    try {
+      const orders = await ordersController.getOrders();
+      resp.
+        status(200)
+        .json(orders);
+    } catch (error) {
+      next(error);
+    }
   });
 
   /**
@@ -54,9 +64,22 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si la orden con `orderId` indicado no existe
    */
-  app.get('/orders/:orderId', requireAuth, (req, resp, next) => {
+  app.get('/orders/:orderId', requireAuth, async (req, resp, next) => {
+    const { orderId } = req.params;
+    try {
+      const order = await ordersController.getOrders(orderId);
+      if (!order) {
+        resp.
+          status(404)
+          .send('Orden no encontrada');
+      } else {
+        resp.status(200)
+          .json(order);
+      }
+    } catch (error) {
+      next(error);
+    }
   });
-
   /**
    * @name POST /orders
    * @description Crea una nueva orden

@@ -7,7 +7,7 @@ module.exports = {
   async addUser(user) {
     try {
       const database = await mongoConnect();
-      const users = database.collection("users");
+      const users = database.collection('users');
 
       // Validar el formato del email
       if (!validator.isEmail(user.email)) {
@@ -33,7 +33,7 @@ module.exports = {
   async getUsers() {
     try {
       const database = await mongoConnect();
-      const users = database.collection("users");
+      const users = database.collection('users');
       return await users.find().toArray();
     } catch (error) {
       console.error('Error al agregar usuario:', error);
@@ -50,7 +50,7 @@ module.exports = {
 
       //consulta para encontrar el usuario por ID
       const query = {
-        "_id": new ObjectId(id)
+        '_id': new ObjectId(id)
       };
 
       const user = await users.findOne(query);
@@ -76,10 +76,10 @@ module.exports = {
       }
 
       const database = await mongoConnect();
-      const users = database.collection("users");
+      const users = database.collection('users');
 
       const query = {
-        "_id": new ObjectId(userId)
+        '_id': new ObjectId(userId)
       };
 
       // Validar el formato del email si se actualiza
@@ -114,10 +114,10 @@ module.exports = {
   async deleteUser(userId) {
     try {
       const database = await mongoConnect();
-      const users = database.collection("users");
+      const users = database.collection('users');
       // Consulta para eliminar el usuario por ID
       const query = {
-        "_id": new ObjectId(userId)
+        '_id': new ObjectId(userId),
       };
       const result = await users.deleteOne(query);
       return result;
@@ -127,5 +127,5 @@ module.exports = {
     } finally {
       mongoClose();
     }
-  }
+  },
 };
