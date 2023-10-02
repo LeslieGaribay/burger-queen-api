@@ -159,12 +159,23 @@ module.exports = (app, nextMain) => {
    * @code {403} si no es admin
    * @code {404} si el producto con `productId` indicado no existe
    */
-  app.put('/products/:productId', requireAdmin, async (request, response, next) => {
+  app.put('/products/:productId', requireAdmin, async (request, response) => {
+    const { name, price, type, image } = request.body;
+
     try {
-      console.log(request.body);
+      let newProduct = {
+        name,
+        price,
+        type,
+      };
+
+      if (image) {
+        newProduct.image = image
+      }
+
       const updatedProduct = await updateProduct(
         request.params.productId,
-        request.body,
+        newProduct,
       );
       if (!updatedProduct) {
         return response.status(404).json({ error: 'Producto no encontrado' });
