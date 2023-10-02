@@ -194,7 +194,7 @@ module.exports = (app, nextMain) => {
    */
   app.delete('/products/:productId', requireAdmin, async (request, response, next) => {
     try {
-      const deletedProduct = await deleteProduct(request.params.id); // *Product*
+      const deletedProduct = await deleteProduct(request.params.productId); // *Product*
 
       if (!deletedProduct) {
         return response.status(404).json({ error: 'Producto no encontrado' });
