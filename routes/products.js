@@ -100,7 +100,7 @@ module.exports = (app, nextMain) => {
    */
   app.post('/products', requireAdmin, async (request, response, next) => {
 
-    const { name, price, type } = request.body;
+    const { name, price, type, image } = request.body;
 
     try {
       if (!name || !price || !type) {
@@ -113,6 +113,7 @@ module.exports = (app, nextMain) => {
         name,
         price,
         type,
+        image,
       };
 
       const result = await addProduct(newProduct);
