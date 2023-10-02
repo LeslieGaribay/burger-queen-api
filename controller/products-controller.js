@@ -20,6 +20,11 @@ module.exports = {
 
   addProduct: async (product) => {
     try {
+      if (product.image) {
+        const imageName = await saveImageLocally(product.image);
+        product.image = imageName;
+      }
+
       const database = await mongoConnect();
       const products = database.collection("products");
       const result = await products.insertOne(product);
@@ -53,8 +58,10 @@ module.exports = {
 
   updateProduct: async (productId, product) => {
     try {
-      const imageName = await saveImageLocally(product.image);
-      product.image = imageName;
+      if (product.image) {
+        const imageName = await saveImageLocally(product.image);
+        product.image = imageName;
+      }
 
       const database = await mongoConnect();
       const products = database.collection("products");
