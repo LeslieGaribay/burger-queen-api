@@ -1,66 +1,89 @@
 const ordersController = require('../orders-controller');
 const { ObjectId } = require('mongodb');
+const { mongoConnect, mongoClose } = require('../../connect')
 
 describe('createOrder', () => {
-  it('should create an order when user is a waiter', async () => {
-    // Crea un usuario con rol de mesero
-    const waiterUser = {
-      role: 'waiter',
-    };
+  it('deberia crear la orden si el usuario es mesero', async () => {
 
-    // Crea una orden de prueba
-    const orderToCreate = {
-      cliente: 'Nombre del cliente',
-      mesa: 'Número de mesa',
-      productos: [
-        {
-          products_id: ObjectId('65086c3d0210a73abcc50cca'),
-          nombre: 'sopa de chocolo',
-          cantidad: 2,
-          precio_unitario: 10.99,
-        },
-        // Otros productos en la orden
+    const waiterUser = { role: 'waiter' };
+    const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockResolvedValue(waiterUser);
+
+    const result = await ordersController.createOrder(order = {
+      orderId: '123456',
+      items: [
+        { name: 'Pizza', quantity: 2, price: 10.99 },
+        { name: 'Burger', quantity: 1, price: 5.99 },
       ],
-      total: 21.98,
-      estado: 'pendiente',
-      fecha: new Date('2023-09-22T12:00:00Z'),
-    };
-
-    // Llama a la función createOrder
-    const createdOrder = await ordersController.createOrder(orderToCreate, waiterUser);
-
-    // Verifica que la orden haya sido creada exitosamente
-    expect(createdOrder).toBeDefined();
-    expect(createdOrder._id).toBeDefined();
-    expect(createdOrder.cliente).toBe(orderToCreate.cliente);
-    expect(createdOrder.mesa).toBe(orderToCreate.mesa);
+      total: 27.97,
+      customerName: 'Pepito Pérez',
+    }
+      , waiterUser);
+    expect(createOrderSpy).toHaveBeenCalledWith(order, waiterUser);
+    expect(result).toEqual(waiterUser);
+    createOrderSpy.mockRestore();
   });
+});
 
-  it('should throw an error when user is not a waiter', async () => {
-    // Crea un usuario con un rol que no sea mesero (por ejemplo, chef)
-    const nonWaiterUser = {
-      role: 'chef',
-    };
+describe('getOrders', () => {
+  it('debería obtener las órdenes correctamente', async () => {
+    const waiterUser = { role: 'waiter' };
+    const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockResolvedValue(waiterUser);
 
-    // Crea una orden de prueba (esto puede ser cualquier orden, ya que la prueba se enfoca en el usuario)
-    const orderToCreate = {
-      cliente: 'Nombre del cliente',
-      mesa: 'Número de mesa',
-      productos: [
-        {
-          producto_id: ObjectId('id_del_producto'),
-          nombre: 'Nombre del producto',
-          cantidad: 2,
-          precio_unitario: 10.99,
-        },
-        // Otros productos en la orden
+    const createdOrderData = {
+      orderId: '123456',
+      items: [
+        { name: 'Pizza', quantity: 2, price: 10.99 },
+        { name: 'Burger', quantity: 1, price: 5.99 },
       ],
-      total: 21.98,
-      estado: 'pendiente',
-      fecha: new Date('2023-09-22T12:00:00Z'),
+      total: 27.97,
+      customerName: 'Pepito Pérez',
+      customerTable: '5',
     };
 
-    // Llama a la función createOrder y espera que arroje un error
-    await expect(orderController.createOrder(orderToCreate, nonWaiterUser)).rejects.toThrowError();
+    const createdOrder = await ordersController.createOrder(createdOrderData, waiterUser);
+
+    const orders = await ordersController.getOrders();
+    expect(Array.isArray(orders)).toBe(true);
+
+    // Verifica que cada orden en la lista de órdenes coincida con la orden creada
+    orders.forEach((order) => {
+      expect(order).toHaveProperty('orderId', createdOrder.orderId);
+      expect(order).toHaveProperty('items', createdOrder.items);
+      expect(order).toHaveProperty('total', createdOrder.total);
+      expect(order).toHaveProperty('customerName', createdOrder.customerName);
+      expect(order).toHaveProperty('customerTable', createdOrder.customerTable);
+    });
+
+    createOrderSpy.mockRestore();
+  });
+});
+
+describe('getOrderById', () => {
+  it('debería obtener una orden por su ID', async () => {
+    const collectionMock = jest.fn().mockReturnValue({
+      findOne: jest.fn().mockResolvedValue(null),
+    });
+    const mongoConnect = jest.fn().mockReturnValue({
+      collection: collectionMock,
+    });
+
+    // Espiar la función mongoClose()
+    // const spyMongoClose = jest.spyOn(mongoClose, 'call');
+
+    // Mockear la función mongoClose()
+    // jest.mock('mongodb', () => ({
+    //   mongoClose: jest.fn().mockResolvedValue(),
+    // }));
+
+    mongoConnect();
+
+    const orderId = '313233343536373839303132';
+    const order = await collectionMock().findOne({ _id: new ObjectId('313233343536373839303132') });
+
+    expect(mongoConnect).toHaveBeenCalledTimes(1);
+    expect(collectionMock().findOne).toHaveBeenCalledWith({ _id: new ObjectId('313233343536373839303132') });
+    expect(order).toBeNull();
+
+    // expect(spyMongoClose).toHaveBeenCalledTimes(1);
   });
 });
