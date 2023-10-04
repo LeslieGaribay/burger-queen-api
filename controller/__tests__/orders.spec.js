@@ -260,7 +260,7 @@ describe('deleteOrder', () => {
     const productId = '313233343536373839303132';
     collectionMock().deleteOne.mockRejectedValue(new Error('No se pudo eliminar el producto'));
     try {
-      await ordersController.deleteProduct(productId);
+      await ordersController.deleteOrder(productId);
     } catch (error) {
       expect(error.message).toBe('No se pudo eliminar el producto');
     }
