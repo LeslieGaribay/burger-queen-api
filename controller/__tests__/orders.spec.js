@@ -193,3 +193,39 @@ describe('updateOrder', () => {
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('deleteOrder', () => {
+  let collectionMock;
+
+  beforeEach(() => {
+    collectionMock = jest.fn().mockReturnValue({
+      deleteOne: jest.fn(),
+    });
+    mongoConnect.mockResolvedValue({
+      collection: collectionMock,
+    });
+  });
+
+  afterEach(() => {
+    mongoConnect.mockRestore();
+    mongoClose.mockRestore();
+  });
+
+  it('debería eliminar una orden por su ID', async () => {
+    const orderId = '313233343536373839303132';
+    const updateResult = {
+      matchedCount: 1
+    }
+
+    collectionMock().deleteOne.mockResolvedValue(updateResult);
+
+    const result = await ordersController.deleteOrder(orderId);
+
+    expect(mongoConnect).toHaveBeenCalledTimes(1);
+    expect(collectionMock().deleteOne).toHaveBeenCalledWith(
+      { _id: new ObjectId(orderId) },
+    );
+    expect(result).toEqual(updateResult);
+    expect(mongoClose).toHaveBeenCalledTimes(1);
+  });
+});
