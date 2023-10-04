@@ -1,7 +1,6 @@
 const {
   requireAuth,
 } = require('../middleware/auth');
-
 const ordersController = require('../controller/orders-controller');
 
 /** @module orders */
@@ -35,9 +34,9 @@ module.exports = (app, nextMain) => {
   app.get('/orders', requireAuth, async (req, resp, next) => {
     try {
       const orders = await ordersController.getOrders();
-      resp.
-        status(200)
-        .json(orders);
+      resp
+      .status(200)
+      .json(orders);
     } catch (error) {
       next(error);
     }
@@ -67,14 +66,15 @@ module.exports = (app, nextMain) => {
   app.get('/orders/:orderId', requireAuth, async (req, resp, next) => {
     const { orderId } = req.params;
     try {
-      const order = await ordersController.getOrders(orderId);
+      const order = await ordersController.getOrdersById(orderId);
       if (!order) {
         resp.
           status(404)
           .send('Orden no encontrada');
       } else {
-        resp.status(200)
-          .json(order);
+        resp
+        .status(200)
+        .json(order);
       }
     } catch (error) {
       next(error);
@@ -106,8 +106,23 @@ module.exports = (app, nextMain) => {
    * @code {400} no se indica `userId` o se intenta crear una orden sin productos
    * @code {401} si no hay cabecera de autenticación
    */
-  app.post('/orders', requireAuth, (req, resp, next) => {
+  app.post('/orders', requireAuth, async (req, resp, next) => {
+    try {
+      const order = req.body;
+      if (req.user.role !== 'waiter') { 
+        const errorMessage = 'Acceso denegado. Solo los meseros pueden crear órdenes.';
+        throw new Error(errorMessage);
+      }
+  
+      const createdOrder = await ordersController.createOrder(order, req.user); 
+      resp
+      .status(200)
+      .json(createdOrder);
+    } catch (error) {
+      next(error);
+    }
   });
+  
 
   /**
    * @name PUT /orders
@@ -137,8 +152,30 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si la orderId con `orderId` indicado no existe
    */
-  app.put('/orders/:orderId', requireAuth, (req, resp, next) => {
+  app.put('/orders/:orderId', requireAuth, async (req, resp, next) => {
+    try {
+      const orderId = req.params.orderId; 
+      const updatedOrderData = req.body; 
+  
+      if (req.user.role !== 'waiter') {
+        const errorMessage = 'Acceso denegado. Solo los meseros pueden actualizar órdenes.';
+        throw new Error(errorMessage);
+      }
+  
+      const result = await ordersController.updateOrder(orderId, updatedOrderData);
+  
+      if (result.matchedCount === 0) {
+        const errorMessage = 'Orden no encontrada.';
+        throw new Error(errorMessage);
+      }
+      resp
+      .status(200)
+      .json({ message: 'Orden actualizada con éxito' });
+    } catch (error) {
+      next(error);
+    }
   });
+  
 
   /**
    * @name DELETE /orders
@@ -161,7 +198,28 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si el producto con `orderId` indicado no existe
    */
-  app.delete('/orders/:orderId', requireAuth, (req, resp, next) => {
+  app.delete('/orders/:orderId', requireAuth, async (req, resp, next) => {
+    try {
+      const orderId = req.params.orderId; 
+  
+      if (req.user.role !== 'waiter' || req.user.role !== 'admin') {
+        const errorMessage = 'Acceso denegado. Solo los meseros o admins pueden eliminar órdenes.';
+        throw new Error(errorMessage);
+      }
+  
+      const result = await ordersController.deleteOrder(orderId);
+  
+      if (result.deletedCount === 0) {
+        const errorMessage = 'Orden no encontrada.';
+        throw new Error(errorMessage);
+      }
+      resp
+      .status(204)
+      .send(); 
+      
+    } catch (error) {
+      next(error);
+    }
   });
 
   nextMain();
