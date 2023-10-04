@@ -1,3 +1,7 @@
+jest.mock('../../connect.js', () => ({
+  mongoConnect: jest.fn(),
+  mongoClose: jest.fn(),
+}));
 const ordersController = require('../orders-controller');
 const { ObjectId } = require('mongodb');
 const { mongoConnect, mongoClose } = require('../../connect')
@@ -25,11 +29,71 @@ describe('createOrder', () => {
 });
 
 describe('getOrders', () => {
+  let collectionMock;
+  const ordersData = [{
+    orderId: '123456',
+    items: [
+      { name: 'Pizza', quantity: 2, price: 10.99 },
+      { name: 'Burger', quantity: 1, price: 5.99 },
+    ],
+    total: 27.97,
+    customerName: 'Pepito Pérez',
+    customerTable: '5',
+  }];
+
+  beforeEach(() => {
+    collectionMock = jest.fn('orders').mockReturnValue({
+      find:  jest.fn().mockReturnValue({
+        toArray: jest.fn().mockResolvedValue(ordersData)
+      }),
+    });
+    mongoConnect.mockResolvedValue({
+      collection: collectionMock,
+    });
+  });
+
+  afterEach(() => {
+    mongoConnect.mockRestore();
+    mongoClose.mockRestore();
+  });
+
   it('debería obtener las órdenes correctamente', async () => {
     const waiterUser = { role: 'waiter' };
     const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockResolvedValue(waiterUser);
 
-    const createdOrderData = {
+    const orders = await ordersController.getOrders();
+    expect(Array.isArray(orders)).toBe(true);
+    // Verifica que cada orden en la lista de órdenes coincida con la orden creada
+    orders.forEach((order, index) => {
+      expect(order).toHaveProperty('orderId', ordersData[index].orderId);
+      expect(order).toHaveProperty('items', ordersData[index].items);
+      expect(order).toHaveProperty('total', ordersData[index].total);
+      expect(order).toHaveProperty('customerName', ordersData[index].customerName);
+      expect(order).toHaveProperty('customerTable', ordersData[index].customerTable);
+    });
+    createOrderSpy.mockRestore();
+  });
+});
+
+describe('getOrderById', () => {
+  let collectionMock;
+
+  beforeEach(() => {
+    collectionMock = jest.fn().mockReturnValue({
+      findOne: jest.fn(),
+    });
+    mongoConnect.mockResolvedValue({
+      collection: collectionMock,
+    });
+  });
+
+  afterEach(() => {
+    mongoConnect.mockRestore();
+    mongoClose.mockRestore();
+  });
+
+  it('debería obtener una orden por su ID', async () => {
+    const orderData = {
       orderId: '123456',
       items: [
         { name: 'Pizza', quantity: 2, price: 10.99 },
@@ -40,50 +104,26 @@ describe('getOrders', () => {
       customerTable: '5',
     };
 
-    const createdOrder = await ordersController.createOrder(createdOrderData, waiterUser);
-
-    const orders = await ordersController.getOrders();
-    expect(Array.isArray(orders)).toBe(true);
-
-    // Verifica que cada orden en la lista de órdenes coincida con la orden creada
-    orders.forEach((order) => {
-      expect(order).toHaveProperty('orderId', createdOrder.orderId);
-      expect(order).toHaveProperty('items', createdOrder.items);
-      expect(order).toHaveProperty('total', createdOrder.total);
-      expect(order).toHaveProperty('customerName', createdOrder.customerName);
-      expect(order).toHaveProperty('customerTable', createdOrder.customerTable);
-    });
-
-    createOrderSpy.mockRestore();
-  });
-});
-
-describe('getOrderById', () => {
-  it('debería obtener una orden por su ID', async () => {
-    const collectionMock = jest.fn().mockReturnValue({
-      findOne: jest.fn().mockResolvedValue(null),
-    });
-    const mongoConnect = jest.fn().mockReturnValue({
-      collection: collectionMock,
-    });
-
-    // Espiar la función mongoClose()
-    // const spyMongoClose = jest.spyOn(mongoClose, 'call');
-
-    // Mockear la función mongoClose()
-    // jest.mock('mongodb', () => ({
-    //   mongoClose: jest.fn().mockResolvedValue(),
-    // }));
-
-    mongoConnect();
+    collectionMock().findOne.mockResolvedValue(orderData);
 
     const orderId = '313233343536373839303132';
-    const order = await collectionMock().findOne({ _id: new ObjectId('313233343536373839303132') });
+    const order = await ordersController.getOrderById(orderId);
 
     expect(mongoConnect).toHaveBeenCalledTimes(1);
-    expect(collectionMock().findOne).toHaveBeenCalledWith({ _id: new ObjectId('313233343536373839303132') });
-    expect(order).toBeNull();
+    expect(collectionMock().findOne).toHaveBeenCalledWith({ _id: new ObjectId(orderId) });
+    expect(order).toEqual(orderData);
+    expect(mongoClose).toHaveBeenCalledTimes(1);
+  });
 
-    // expect(spyMongoClose).toHaveBeenCalledTimes(1);
+  it('debería devolver nulo cuando no exista el ID de la orden', async () => {
+    collectionMock().findOne.mockResolvedValue(null);
+
+    const orderId = '313233343536373839303132';
+    const order = await ordersController.getOrderById(orderId);
+
+    expect(mongoConnect).toHaveBeenCalledTimes(1);
+    expect(collectionMock().findOne).toHaveBeenCalledWith({ _id: new ObjectId(orderId) });
+    expect(order).toBeNull();
+    expect(mongoClose).toHaveBeenCalledTimes(1);
   });
 });
