@@ -197,6 +197,23 @@ describe('getOrderById', () => {
     expect(order).toBeNull();
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
+
+  it('debería manejar un error al obtener la orden por ID', async () => {
+    const errorMessage = 'Error al obtener la orden por ID';
+    collectionMock().findOne.mockRejectedValue(new Error(errorMessage));
+
+    const orderId = '313233343536373839303132';
+
+    try {
+      await ordersController.getOrderById(orderId);
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+    }
+
+    expect(mongoConnect).toHaveBeenCalledTimes(1);
+    expect(collectionMock().findOne).toHaveBeenCalledWith({ _id: new ObjectId(orderId) });
+    expect(mongoClose).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('updateOrder', () => {
