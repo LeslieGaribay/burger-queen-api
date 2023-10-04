@@ -68,8 +68,8 @@ module.exports = (app, nextMain) => {
     try {
       const order = await ordersController.getOrdersById(orderId);
       if (!order) {
-        resp.
-          status(404)
+        resp
+          .status(404)
           .send('Orden no encontrada');
       } else {
         resp
@@ -123,7 +123,6 @@ module.exports = (app, nextMain) => {
     }
   });
 
-
   /**
    * @name PUT /orders
    * @description Modifica una orden
@@ -176,7 +175,6 @@ module.exports = (app, nextMain) => {
     }
   });
 
-
   /**
    * @name DELETE /orders
    * @description Elimina una orden
@@ -216,7 +214,6 @@ module.exports = (app, nextMain) => {
       resp
         .status(204)
         .send();
-
     } catch (error) {
       next(error);
     }

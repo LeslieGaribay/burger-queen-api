@@ -8,7 +8,7 @@ const {
   addProduct,
   getProduct,
   deleteProduct,
-  updateProduct
+  updateProduct,
 } = require('../controller/products-controller');
 
 /** @module products */
@@ -35,14 +35,13 @@ module.exports = (app, nextMain) => {
    * @code {200} si la autenticación es correcta
    * @code {401} si no hay cabecera de autenticación
    */
-  app.get('/products', requireAuth, async (request, response, next) => {
+  app.get('/products', requireAuth, async (request, response) => {
     const { type } = request.query;
-    
     try {
       const products = await getProducts(type);
       response.json(products);
     } catch (error) {
-      response.status(500).json({ error: 'No se pudieron obtener los productos'});
+      response.status(500).json({ error: 'No se pudieron obtener los productos' });
     }
   });
 
@@ -63,16 +62,16 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si el producto con `productId` indicado no existe
    */
-  app.get('/products/:productId', requireAuth, async (request, response, next) => {
+  app.get('/products/:productId', requireAuth, async (request, response) => {
     try {
       const product = await getProduct(request.params.productId);
 
       if (!product) {
-        return response.status(404).json({ error: 'Producto no encontrado'});
+        return response.status(404).json({ error: 'Producto no encontrado' });
       }
       response.json(product);
     } catch (error) {
-      response.status(500).json({ error: 'No se pudo obtener el producto'});
+      response.status(500).json({ error: 'No se pudo obtener el producto' });
     }
   });
 
@@ -98,7 +97,7 @@ module.exports = (app, nextMain) => {
    * @code {403} si no es admin
    * @code {404} si el producto con `productId` indicado no existe
    */
-  app.post('/products', requireAdmin, async (request, response, next) => {
+  app.post('/products', requireAdmin, async (request, response) => {
 
     const { name, price, type } = request.body;
 
@@ -106,7 +105,7 @@ module.exports = (app, nextMain) => {
       if (!name || !price || !type) {
         return response
           .status(400)
-          .json({ message: 'Todos los campos son requeridos'});
+          .json({ message: 'Todos los campos son requeridos' });
       }
 
       const newProduct = {
@@ -158,9 +157,8 @@ module.exports = (app, nextMain) => {
    * @code {403} si no es admin
    * @code {404} si el producto con `productId` indicado no existe
    */
-  app.put('/products/:productId', requireAdmin, async (request, response, next) => {
+  app.put('/products/:productId', requireAdmin, async (request, response) => {
     try {
-      console.log(request.body);
       const updatedProduct = await updateProduct(
         request.params.productId,
         request.body,
@@ -192,7 +190,7 @@ module.exports = (app, nextMain) => {
    * @code {403} si no es ni admin
    * @code {404} si el producto con `productId` indicado no existe
    */
-  app.delete('/products/:productId', requireAdmin, async (request, response, next) => {
+  app.delete('/products/:productId', requireAdmin, async (request, response) => {
     try {
       const deletedProduct = await deleteProduct(request.params.productId); // *Product*
 

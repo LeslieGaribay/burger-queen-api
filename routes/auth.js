@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
+const { response } = require('express');
 const { mongoConnect, mongoClose } = require('../connect');
 const config = require('../config');
-const { response } = require('express');
+
 const { secret } = config;
 
 
@@ -54,7 +55,7 @@ module.exports = (app, nextMain) => {
         .status(500)
         .send({
           error: 'Error al autenticar al usuario',
-          message: error.message
+          message: error.message,
         });
     }
   });

@@ -78,8 +78,8 @@ module.exports = (app, next) => {
       const users = await getUsers();
       res.json(users);
     } catch (error) {
-      res.status(500).json({ error: 'Error al obtener la lista de usuarios' })
-    };
+      res.status(500).json({ error: 'Error al obtener la lista de usuarios' });
+    }
   });
   /**
    * @name GET /users/:uid
@@ -134,9 +134,15 @@ module.exports = (app, next) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {403} si ya existe usuaria con ese `email`
    */
-  app.post('/users', requireAdmin, async (require, response, next) => {
+  app.post('/users', requireAdmin, async (require, response) => {
     // Obtener los datos del nuevo usuario desde el cuerpo de la solicitud
-    const { name, email, password, role } = require.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+    } = require.body;
+
     try {
       // Validar datos
       if (!name || !email || !password || !role) {
@@ -151,7 +157,7 @@ module.exports = (app, next) => {
         password,
         role,
       };
-      //Llamamos a la funcion addUser para agregar el nuevo usuario a la db
+      // Llamamos a la funcion addUser para agregar el nuevo usuario a la db
       const result = await addUser(newUser);
       // si los datos son validos insertar usuario
       if (result.insertedId) {
@@ -194,9 +200,8 @@ module.exports = (app, next) => {
    * @code {403} una usuaria no admin intenta de modificar sus `roles`
    * @code {404} si la usuaria solicitada no existe
    */
-  app.put('/users/:id', requireAuth, async (req, resp, next) => {
+  app.put('/users/:id', requireAuth, async (req, resp) => {
     try {
-      console.log(req.body);
       const user = await updateUser(
         req.params.id,
         req.body,
@@ -228,9 +233,8 @@ module.exports = (app, next) => {
    * @code {403} si no es ni admin o la misma usuaria
    * @code {404} si la usuaria solicitada no existe
    */
-  app.delete('/users/:id', requireAuth, async (req, resp, next) => {
+  app.delete('/users/:id', requireAuth, async (req, resp) => {
     try {
-      console.log(req.body);
       const user = await deleteUser(req.params.id);
       if (!user) {
         return resp.status(404).json({ error: 'Usuario no encontrado' });

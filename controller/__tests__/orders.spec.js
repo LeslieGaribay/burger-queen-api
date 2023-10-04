@@ -2,14 +2,13 @@ jest.mock('../../connect.js', () => ({
   mongoConnect: jest.fn(),
   mongoClose: jest.fn(),
 }));
-const ordersController = require('../orders-controller');
 const { ObjectId } = require('mongodb');
-const { mongoConnect, mongoClose } = require('../../connect')
+const ordersController = require('../orders-controller');
+const { mongoConnect, mongoClose } = require('../../connect');
 const AppError = require('../../errors/app-error');
 
 describe('createOrder', () => {
   it('deberia crear la orden si el usuario es mesero', async () => {
-
     const waiterUser = { role: 'waiter' };
     const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockResolvedValue(waiterUser);
 
@@ -44,8 +43,8 @@ describe('getOrders', () => {
 
   beforeEach(() => {
     collectionMock = jest.fn('orders').mockReturnValue({
-      find:  jest.fn().mockReturnValue({
-        toArray: jest.fn().mockResolvedValue(ordersData)
+      find: jest.fn().mockReturnValue({
+        toArray: jest.fn().mockResolvedValue(ordersData),
       }),
     });
     mongoConnect.mockResolvedValue({
@@ -158,8 +157,8 @@ describe('updateOrder', () => {
       customerTable: '5',
     };
     const updateResult = {
-      matchedCount: 1
-    }
+      matchedCount: 1,
+    };
 
     collectionMock().updateOne.mockResolvedValue(updateResult);
 
@@ -168,7 +167,7 @@ describe('updateOrder', () => {
     expect(mongoConnect).toHaveBeenCalledTimes(1);
     expect(collectionMock().updateOne).toHaveBeenCalledWith(
       { _id: new ObjectId(updatedOrderId) },
-      { $set: updatedOrderData }
+      { $set: updatedOrderData },
     );
     expect(result).toEqual(updateResult);
     expect(mongoClose).toHaveBeenCalledTimes(1);
@@ -176,7 +175,7 @@ describe('updateOrder', () => {
 
   it('debería manejar el caso de una orden no encontrada', async () => {
     const updatedOrderId = '313233343536373839303132';
-    const updatedOrderData = {}
+    const updatedOrderData = {};
 
     collectionMock().updateOne.mockImplementation(() => {
       throw new AppError(404, 'Orden no encontrada');
@@ -188,7 +187,7 @@ describe('updateOrder', () => {
     expect(mongoConnect).toHaveBeenCalledTimes(1);
     expect(collectionMock().updateOne).toHaveBeenCalledWith(
       { _id: new ObjectId(updatedOrderId) },
-      { $set: updatedOrderData }
+      { $set: updatedOrderData },
     );
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
@@ -213,11 +212,10 @@ describe('updateOrder', () => {
       // Verifica que la función arroje el error esperado
       expect(error.message).toBe('Error al editar el producto:');
     }
-  
     expect(mongoConnect).toHaveBeenCalledTimes(1);
     expect(collectionMock().updateOne).toHaveBeenCalledWith(
       { _id: new ObjectId(updatedOrderId) },
-      { $set: updatedOrderData }
+      { $set: updatedOrderData },
     );
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
@@ -243,8 +241,8 @@ describe('deleteOrder', () => {
   it('debería eliminar una orden por su ID', async () => {
     const orderId = '313233343536373839303132';
     const updateResult = {
-      matchedCount: 1
-    }
+      matchedCount: 1,
+    };
 
     collectionMock().deleteOne.mockResolvedValue(updateResult);
 
@@ -260,18 +258,15 @@ describe('deleteOrder', () => {
 
   it('debería manejar errores al eliminar un producto', async () => {
     const productId = '313233343536373839303132';
-  
     collectionMock().deleteOne.mockRejectedValue(new Error('No se pudo eliminar el producto'));
-  
     try {
       await ordersController.deleteProduct(productId);
     } catch (error) {
       expect(error.message).toBe('No se pudo eliminar el producto');
     }
-  
     expect(mongoConnect).toHaveBeenCalledTimes(1);
     expect(collectionMock().deleteOne).toHaveBeenCalledWith(
-      { _id: new ObjectId(productId) }
+      { _id: new ObjectId(productId) },
     );
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
