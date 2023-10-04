@@ -26,6 +26,59 @@ describe('createOrder', () => {
     expect(result).toEqual(waiterUser);
     createOrderSpy.mockRestore();
   });
+
+  it('debería manejar un error si el usuario no es mesero', async () => {
+    const nonWaiterUser = { role: 'customer' };
+    const errorMessage = 'Acceso denegado. Sólo los Meseros pueden crear órdenes.';
+    const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockImplementation(() => {
+      throw new AppError(403, errorMessage);
+    });
+
+    try {
+      const order = {
+        orderId: '123456',
+        items: [
+          { name: 'Pizza', quantity: 2, price: 10.99 },
+          { name: 'Burger', quantity: 1, price: 5.99 },
+        ],
+        total: 27.97,
+        customerName: 'Pepito Pérez',
+      };
+
+      await ordersController.createOrder(order, nonWaiterUser);
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+      expect(error.statusCode).toBe(403);
+    }
+
+    createOrderSpy.mockRestore();
+  });
+
+  it('debería manejar un error en la base de datos', async () => {
+    const waiterUser = { role: 'waiter' };
+    const errorMessage = 'Error al insertar la orden en la base de datos';
+    const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockImplementation(() => {
+      throw new Error(errorMessage);
+    });
+
+    try {
+      const order = {
+        orderId: '123456',
+        items: [
+          { name: 'Pizza', quantity: 2, price: 10.99 },
+          { name: 'Burger', quantity: 1, price: 5.99 },
+        ],
+        total: 27.97,
+        customerName: 'Pepito Pérez',
+      };
+
+      await ordersController.createOrder(order, waiterUser);
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+    }
+
+    createOrderSpy.mockRestore();
+  });
 });
 
 describe('getOrders', () => {
