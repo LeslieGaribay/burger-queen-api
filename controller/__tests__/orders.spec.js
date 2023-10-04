@@ -126,6 +126,24 @@ describe('getOrders', () => {
     });
     createOrderSpy.mockRestore();
   });
+
+  it('debería manejar un error al obtener las órdenes', async () => {
+    const errorMessage = 'Error al obtener las órdenes';
+    const collectionMockWithError = jest.fn('orders').mockReturnValue({
+      find: jest.fn().mockReturnValue({
+        toArray: jest.fn().mockRejectedValue(new Error(errorMessage)),
+      }),
+    });
+    mongoConnect.mockResolvedValue({
+      collection: collectionMockWithError,
+    });
+
+    try {
+      await ordersController.getOrders();
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+    }
+  });
 });
 
 describe('getOrderById', () => {
