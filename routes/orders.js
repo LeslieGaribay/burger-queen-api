@@ -35,8 +35,8 @@ module.exports = (app, nextMain) => {
     try {
       const orders = await ordersController.getOrders();
       resp
-      .status(200)
-      .json(orders);
+        .status(200)
+        .json(orders);
     } catch (error) {
       next(error);
     }
@@ -73,8 +73,8 @@ module.exports = (app, nextMain) => {
           .send('Orden no encontrada');
       } else {
         resp
-        .status(200)
-        .json(order);
+          .status(200)
+          .json(order);
       }
     } catch (error) {
       next(error);
@@ -109,20 +109,20 @@ module.exports = (app, nextMain) => {
   app.post('/orders', requireAuth, async (req, resp, next) => {
     try {
       const order = req.body;
-      if (req.user.role !== 'waiter') { 
+      if (req.user.role !== 'waiter') {
         const errorMessage = 'Acceso denegado. Solo los meseros pueden crear órdenes.';
         throw new Error(errorMessage);
       }
-  
-      const createdOrder = await ordersController.createOrder(order, req.user); 
+
+      const createdOrder = await ordersController.createOrder(order, req.user);
       resp
-      .status(200)
-      .json(createdOrder);
+        .status(200)
+        .json(createdOrder);
     } catch (error) {
       next(error);
     }
   });
-  
+
 
   /**
    * @name PUT /orders
@@ -154,28 +154,28 @@ module.exports = (app, nextMain) => {
    */
   app.put('/orders/:orderId', requireAuth, async (req, resp, next) => {
     try {
-      const orderId = req.params.orderId; 
-      const updatedOrderData = req.body; 
-  
+      const orderId = req.params.orderId;
+      const updatedOrderData = req.body;
+
       if (req.user.role !== 'waiter') {
         const errorMessage = 'Acceso denegado. Solo los meseros pueden actualizar órdenes.';
         throw new Error(errorMessage);
       }
-  
+
       const result = await ordersController.updateOrder(orderId, updatedOrderData);
-  
+
       if (result.matchedCount === 0) {
         const errorMessage = 'Orden no encontrada.';
         throw new Error(errorMessage);
       }
       resp
-      .status(200)
-      .json({ message: 'Orden actualizada con éxito' });
+        .status(200)
+        .json({ message: 'Orden actualizada con éxito' });
     } catch (error) {
       next(error);
     }
   });
-  
+
 
   /**
    * @name DELETE /orders
@@ -200,23 +200,23 @@ module.exports = (app, nextMain) => {
    */
   app.delete('/orders/:orderId', requireAuth, async (req, resp, next) => {
     try {
-      const orderId = req.params.orderId; 
-  
+      const orderId = req.params.orderId;
+
       if (req.user.role !== 'waiter' || req.user.role !== 'admin') {
         const errorMessage = 'Acceso denegado. Solo los meseros o admins pueden eliminar órdenes.';
         throw new Error(errorMessage);
       }
-  
+
       const result = await ordersController.deleteOrder(orderId);
-  
+
       if (result.deletedCount === 0) {
         const errorMessage = 'Orden no encontrada.';
         throw new Error(errorMessage);
       }
       resp
-      .status(204)
-      .send(); 
-      
+        .status(204)
+        .send();
+
     } catch (error) {
       next(error);
     }
