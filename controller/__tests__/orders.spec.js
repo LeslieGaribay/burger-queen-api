@@ -174,7 +174,7 @@ describe('updateOrder', () => {
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
 
-  it('debería devolver un error cuando no exista el ID de la orden', async () => {
+  it('debería manejar el caso de una orden no encontrada', async () => {
     const updatedOrderId = '313233343536373839303132';
     const updatedOrderData = {}
 
@@ -185,6 +185,35 @@ describe('updateOrder', () => {
     const result = ordersController.updateOrder(updatedOrderId, updatedOrderData);
     await expect(result).rejects.toThrow(AppError);
 
+    expect(mongoConnect).toHaveBeenCalledTimes(1);
+    expect(collectionMock().updateOne).toHaveBeenCalledWith(
+      { _id: new ObjectId(updatedOrderId) },
+      { $set: updatedOrderData }
+    );
+    expect(mongoClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('debería manejar errores al actualizar la orden', async () => {
+    const updatedOrderId = '313233343536373839303132';
+    const updatedOrderData = {
+      items: [
+        { name: 'Pizza', quantity: 2, price: 10.99 },
+        { name: 'Burger', quantity: 1, price: 5.99 },
+      ],
+      total: 27.97,
+      customerName: 'Pepito Pérez',
+      customerTable: '5',
+    };
+
+    collectionMock().updateOne.mockRejectedValue(new Error('Error al editar el producto:'));
+
+    try {
+      await ordersController.updateOrder(updatedOrderId, updatedOrderData);
+    } catch (error) {
+      // Verifica que la función arroje el error esperado
+      expect(error.message).toBe('Error al editar el producto:');
+    }
+  
     expect(mongoConnect).toHaveBeenCalledTimes(1);
     expect(collectionMock().updateOne).toHaveBeenCalledWith(
       { _id: new ObjectId(updatedOrderId) },
@@ -226,6 +255,24 @@ describe('deleteOrder', () => {
       { _id: new ObjectId(orderId) },
     );
     expect(result).toEqual(updateResult);
+    expect(mongoClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('debería manejar errores al eliminar un producto', async () => {
+    const productId = '313233343536373839303132';
+  
+    collectionMock().deleteOne.mockRejectedValue(new Error('No se pudo eliminar el producto'));
+  
+    try {
+      await ordersController.deleteProduct(productId);
+    } catch (error) {
+      expect(error.message).toBe('No se pudo eliminar el producto');
+    }
+  
+    expect(mongoConnect).toHaveBeenCalledTimes(1);
+    expect(collectionMock().deleteOne).toHaveBeenCalledWith(
+      { _id: new ObjectId(productId) }
+    );
     expect(mongoClose).toHaveBeenCalledTimes(1);
   });
 });
