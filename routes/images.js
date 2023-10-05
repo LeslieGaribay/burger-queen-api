@@ -3,8 +3,7 @@ const path = require('path');
 
 /** @module images */
 module.exports = (app, nextMain) => {
-
-  app.get('/img/:imageName', async (request, response, next) => {
+  app.get('/img/:imageName', async (request, response) => {
     const imagePath = path.join('./img-data/', request.params.imageName);
     if (!existsSync(imagePath)) {
       return response
