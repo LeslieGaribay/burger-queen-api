@@ -26,7 +26,7 @@ describe('createOrder', () => {
     expect(result).toEqual(waiterUser);
     createOrderSpy.mockRestore();
   });
-
+  
   it('debería manejar un error si el usuario no es mesero', async () => {
     const nonWaiterUser = { role: 'customer' };
     const errorMessage = 'Acceso denegado. Sólo los Meseros pueden crear órdenes.';
@@ -78,6 +78,66 @@ describe('createOrder', () => {
     }
 
     createOrderSpy.mockRestore();
+  });
+
+  it('debería manejar un error si los datos de la orden no son válidos', async () => {
+    const waiterUser = { role: 'waiter' };
+    const errorMessage = 'Datos de orden no válidos';
+    const createOrderSpy = jest.spyOn(ordersController, 'createOrder').mockImplementation(() => {
+      throw new AppError(400, errorMessage);
+    });
+  
+    try {
+      const invalidOrder = {
+        userId: '123', 
+        client: 'Cliente Ejemplo',
+        products: [
+          { qty: 2, product: { id: 1, name: 'Producto A', price: 10, image: 'imagen.jpg', type: 'Tipo A', dateEntry: '2023-01-01' } },
+          { qty: 'invalid', product: { id: 2, name: 'Producto B', price: 15, image: 'imagen.jpg', type: 'Tipo B', dateEntry: '2023-01-01' } }, // qty debe ser un número
+        ],
+        status: 'invalidStatus', 
+      };
+  
+      await ordersController.createOrder(invalidOrder, waiterUser);
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+      expect(error.statusCode).toBe(400);
+    }
+  
+    createOrderSpy.mockRestore();
+  }); 
+  it('debería lanzar un error si alguna propiedad de order es nula o indefinida', async () => {
+    const waiterUser = { role: 'waiter' };
+    const orderWithNullProperty = {
+      userId: 123,
+      client: null,
+      products: [
+        { qty: 2, product: { id: 1, name: 'Producto A', price: 10, image: 'imagen.jpg', type: 'Tipo A', dateEntry: '2023-01-01' } },
+      ],
+      status: 'pending',
+    };
+  
+    try {
+      await ordersController.createOrder(orderWithNullProperty, waiterUser);
+    } catch (error) {
+      expect(error.statusCode).toBe(400);
+      expect(error.message).toContain("La propiedad 'client' no puede ser nula ni indefinida.");
+    }
+    const orderWithUndefinedProperty = {
+      userId: 123,
+      client: 'Cliente Ejemplo',
+      products: [
+        { qty: 2, product: { id: 1, name: 'Producto A', price: 10, image: 'imagen.jpg', type: 'Tipo A', dateEntry: '2023-01-01' } },
+      ],
+      status: undefined,
+    };
+  
+    try {
+      await ordersController.createOrder(orderWithUndefinedProperty, waiterUser);
+    } catch (error) {
+      expect(error.statusCode).toBe(400);
+      expect(error.message).toContain("La propiedad 'status' no puede ser nula ni indefinida.");
+    }
   });
 });
 

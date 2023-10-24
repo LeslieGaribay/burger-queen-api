@@ -1,18 +1,49 @@
 const { ObjectId } = require('mongodb');
 const { mongoConnect, mongoClose } = require('../connect');
 const AppError = require('../errors/app-error');
+const OrderStatus = {
+  ENVIADA: 0,
+  PENDIENTE: 1,
+  COMPLETADA: 2,
+};
 
 module.exports = {
+  
   async createOrder(order, user) {
     try {
       // Verificar el rol del usuario
       if (user.role !== 'waiter') {
         throw new AppError(403, 'Acceso denegado. Sólo los Meseros pueden crear órdenes.');
       }
-
+      // Validar que ninguna propiedad sea null o undefined
+      for (const key in order) {
+        if (order[key] === null || order[key] === undefined) {
+          throw new AppError(400, `La propiedad '${key}' no puede ser nula ni indefinida.`);
+        }
+      }
+  
+      // Validar la estructura de la orden
+      if (
+        typeof order.userId !== 'number' ||
+        typeof order.client !== 'string' ||
+        !Array.isArray(order.products) ||
+        !order.products.every(product =>
+          typeof product.qty === 'number' &&
+          typeof product.product.id === 'number' &&
+          typeof product.product.name === 'string' &&
+          typeof product.product.price === 'number' &&
+          typeof product.product.image === 'string' &&
+          typeof product.product.type === 'string' &&
+          typeof product.product.dateEntry === 'string'
+        ) ||
+        !Object.values(OrderStatus).includes(order.status)
+      ) {
+        throw new AppError(400, 'Datos de orden no válidos.');
+      }
+  
       const database = await mongoConnect();
       const orders = database.collection('orders');
-
+  
       const result = await orders.insertOne(order);
       return result.ops[0];
     } catch (error) {
