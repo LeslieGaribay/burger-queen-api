@@ -66,7 +66,7 @@ module.exports = (app, nextMain) => {
   app.get('/orders/:orderId', requireAuth, async (req, resp, next) => {
     const { orderId } = req.params;
     try {
-      const order = await ordersController.getOrdersById(orderId);
+      const order = await ordersController.getOrderById(orderId);
       if (!order) {
         resp
           .status(404)
