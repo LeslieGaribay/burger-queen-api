@@ -23,8 +23,6 @@ module.exports = (secret) => (req, resp, next) => {
   });
 };
 
-
-
 module.exports.isAuthenticated = (req) => {
 
   // Verifica si el token está presente y es válido
@@ -71,6 +69,33 @@ module.exports.requireAdmin = (req, resp, next) => (
   (!module.exports.isAuthenticated(req))
     ? next(new AppError(401, 'No autenticado'))
     : (!module.exports.isAdmin(req))
+      ? next(new AppError(403, 'No autorizado'))
+      : next()
+);
+
+module.exports.isWaiter = (req) => {
+  // Verifica si el usuario tiene el rol de "waiter" en el token
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return false; // El token no está presente
+  }
+  const [type, token] = authorization.split(' ');
+
+  try {
+    const decodedToken = jwt.verify(token, config.secret);
+    const userRole = decodedToken.rol;
+
+    // Verifica si el rol del usuario es "waiter"
+    return userRole === 'waiter';
+  } catch (error) {
+    return false; // El token no es válido
+  }
+};
+
+module.exports.requireWaiter = (req, resp, next) => (
+  (!module.exports.isAuthenticated(req))
+    ? next(new AppError(401, 'No autenticado'))
+    : (!module.exports.isWaiter(req))
       ? next(new AppError(403, 'No autorizado'))
       : next()
 );
