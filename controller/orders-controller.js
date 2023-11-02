@@ -8,20 +8,15 @@ const OrderStatus = {
 };
 
 module.exports = {
-  
-  async createOrder(order, user) {
+  async createOrder(order) {
     try {
-      // Verificar el rol del usuario
-      if (user.role !== 'waiter') {
-        throw new AppError(403, 'Acceso denegado. Sólo los Meseros pueden crear órdenes.');
-      }
       // Validar que ninguna propiedad sea null o undefined
       for (const key in order) {
         if (order[key] === null || order[key] === undefined) {
           throw new AppError(400, `La propiedad '${key}' no puede ser nula ni indefinida.`);
         }
       }
-  
+
       // Validar la estructura de la orden
       if (
         typeof order.userId !== 'number' ||
@@ -29,23 +24,27 @@ module.exports = {
         !Array.isArray(order.products) ||
         !order.products.every(product =>
           typeof product.qty === 'number' &&
-          typeof product.product.id === 'number' &&
+          typeof product.product.id === 'string' &&
           typeof product.product.name === 'string' &&
           typeof product.product.price === 'number' &&
           typeof product.product.image === 'string' &&
-          typeof product.product.type === 'string' &&
-          typeof product.product.dateEntry === 'string'
+          typeof product.product.type === 'string'
         ) ||
         !Object.values(OrderStatus).includes(order.status)
       ) {
         throw new AppError(400, 'Datos de orden no válidos.');
       }
-  
+
       const database = await mongoConnect();
       const orders = database.collection('orders');
-  
+
       const result = await orders.insertOne(order);
-      return result.ops[0];
+
+      if (!result.acknowledged) {
+        console.error('Insertion not acknowledged by MongoDB');
+      } else {
+        return order;
+      }
     } catch (error) {
       console.error('Error al crear la orden:', error);
       throw error;
