@@ -99,3 +99,33 @@ module.exports.requireWaiter = (req, resp, next) => (
       ? next(new AppError(403, 'No autorizado'))
       : next()
 );
+
+
+// Middleware para verificar si el usuario es un chef
+module.exports.isChef = (req) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return false; // El token no está presente
+  }
+  const [type, token] = authorization.split(' ');
+
+  try {
+    const decodedToken = jwt.verify(token, config.secret);
+    const userRole = decodedToken.rol;
+
+    // Verifica si el rol del usuario es "chef"
+    return userRole === 'chef';
+  } catch (error) {
+    return false; // El token no es válido
+  }
+};
+
+// Middleware para requerir que el usuario sea un chef
+module.exports.requireChef = (req, resp, next) => (
+  (!module.exports.isAuthenticated(req))
+    ? next(new AppError(401, 'No autenticado'))
+    : (!module.exports.isChef(req))
+      ? next(new AppError(403, 'No autorizado. Solo los chef pueden acceder.'))
+      : next()
+);
+
