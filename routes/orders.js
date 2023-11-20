@@ -37,7 +37,7 @@ module.exports = (app, nextMain) => {
    */
   app.get('/orders', requireAuth, async (req, resp, next) => {
     try {
-      const orders = await ordersController.getOrders();
+      const orders = await ordersController.getOrders(isChef(req));
       resp
         .status(200)
         .json(orders);
