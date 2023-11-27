@@ -2,6 +2,8 @@ const {
   requireAuth,
   requireWaiter,
   isWaiter,
+  requireChef ,
+  isChef,
 } = require('../middleware/auth');
 const ordersController = require('../controller/orders-controller');
 
@@ -35,7 +37,7 @@ module.exports = (app, nextMain) => {
    */
   app.get('/orders', requireAuth, async (req, resp, next) => {
     try {
-      const orders = await ordersController.getOrders();
+      const orders = await ordersController.getOrders(isChef(req));
       resp
         .status(200)
         .json(orders);
@@ -153,30 +155,29 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si la orderId con `orderId` indicado no existe
    */
-  app.put('/orders/:orderId', requireAuth, async (req, resp, next) => {
+  app.put('/orders/:orderId', requireChef, async (req, resp, next) => {
     try {
       const orderId = req.params.orderId;
       const updatedOrderData = req.body;
-
-      if (req.user.role !== 'waiter') {
-        const errorMessage = 'Acceso denegado. Solo los meseros pueden actualizar órdenes.';
+  
+      if (!isChef(req)) {
+        const errorMessage = 'Acceso denegado. Solo los chef pueden crear órdenes.';
         throw new Error(errorMessage);
       }
-
+  
       const result = await ordersController.updateOrder(orderId, updatedOrderData);
-
+  
       if (result.matchedCount === 0) {
         const errorMessage = 'Orden no encontrada.';
         throw new Error(errorMessage);
       }
-      resp
-        .status(200)
-        .json({ message: 'Orden actualizada con éxito' });
+  
+      resp.status(200).json({ message: 'Orden actualizada con éxito' });
     } catch (error) {
       next(error);
     }
   });
-
+  
   /**
    * @name DELETE /orders
    * @description Elimina una orden

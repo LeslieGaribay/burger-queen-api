@@ -2,9 +2,9 @@ const { ObjectId } = require('mongodb');
 const { mongoConnect, mongoClose } = require('../connect');
 const AppError = require('../errors/app-error');
 const OrderStatus = {
-  ENVIADA: 0,
-  PENDIENTE: 1,
-  COMPLETADA: 2,
+  PENDIENTE: 'PENDIENTE',
+  EN_PREPARACION: 'EN PREPARACIÓN',
+  LISTO_PARA_ENTREGAR: 'LISTO PARA ENTREGAR',
 };
 
 module.exports = {
@@ -53,12 +53,21 @@ module.exports = {
     }
   },
 
-  async getOrders() {
+  async getOrders(isChef) {
     try {
       const database = await mongoConnect();
       const orders = database.collection('orders');
 
-      const orderList = await orders.find().toArray();
+      let orderList;
+
+      // Si el usuario es un chef, obtener solo las órdenes en estado PENDIENTE o EN PREPARACIÓN
+      orderList = await orders.find({
+        $or: [
+          { status: OrderStatus.PENDIENTE },
+          { status: isChef ? OrderStatus.EN_PREPARACION : OrderStatus.LISTO_PARA_ENTREGAR }
+        ]
+      }).toArray();
+
       return orderList;
     } catch (error) {
       console.error('Error al obtener las órdenes:', error);
