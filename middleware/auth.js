@@ -61,7 +61,7 @@ module.exports.isAdmin = (req) => {
 module.exports.requireAuth = (req, resp, next) => (
   (!module.exports.isAuthenticated(req))
     ? next(new AppError(401, 'No autenticado'))
-    : next(new AppError(403, 'Token inválido'))
+    : next()
 );
 
 module.exports.requireAdmin = (req, resp, next) => (
