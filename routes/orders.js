@@ -155,13 +155,13 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si la orderId con `orderId` indicado no existe
    */
-  app.put('/orders/:orderId', requireChef, async (req, resp, next) => {
+  app.put('/orders/:orderId', requireAuth, async (req, resp, next) => {
     try {
       const orderId = req.params.orderId;
       const updatedOrderData = req.body;
   
-      if (!isChef(req)) {
-        const errorMessage = 'Acceso denegado. Solo los chef pueden crear órdenes.';
+      if (!(isWaiter(req) || isChef(req))) {
+        const errorMessage = 'Acceso denegado. Solo los meseros o chefs pueden modificar órdenes.';
         throw new Error(errorMessage);
       }
   
