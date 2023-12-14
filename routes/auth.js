@@ -38,7 +38,12 @@ module.exports = (app, nextMain) => {
       //Autentica al usuario comparando el correo y la constraseña
       if (user.email === email && user.password === password) {
         // Crear un token JWT y responder con él
-        const token = jwt.sign({ uid: user._id, rol: user.role, userName: user.name }, secret);
+        const token = jwt.sign(
+          {
+           uid: user._id,
+           rol: user.role, 
+           userName: user.name 
+          }, secret);
         response
           .status(200)
           .send({ token });
