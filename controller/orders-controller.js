@@ -8,7 +8,7 @@ const OrderStatus = {
 };
 
 module.exports = {
-  async createOrder(order) {
+  async createOrder(order, user) {
     try {
       // Validar que ninguna propiedad sea null o undefined
       for (const key in order) {
@@ -16,10 +16,10 @@ module.exports = {
           throw new AppError(400, `La propiedad '${key}' no puede ser nula ni indefinida.`);
         }
       }
-
+//TODO: Validar que  order.userId sea igual al user.id para evitar que un usuario se haga pasar por otro, en caso de que no sean iguales retornar un error.
       // Validar la estructura de la orden
       if (
-        typeof order.userId !== 'number' ||
+        typeof order.userId !== 'string' || 
         typeof order.client !== 'string' ||
         !Array.isArray(order.products) ||
         !order.products.every(product =>
@@ -35,15 +35,25 @@ module.exports = {
         throw new AppError(400, 'Datos de orden no válidos.');
       }
 
+      // Obtener la fecha y hora actual para el inicio de la preparación
+      const prepStartTime = new Date();
+
+      // Agregar la propiedad de inicio de preparación a la orden
+      order.preparationStart = prepStartTime;
+      order.userId = user.id;
+      order.userName = user.userName;
+      
       const database = await mongoConnect();
       const orders = database.collection('orders');
-
+      
       const result = await orders.insertOne(order);
 
       if (!result.acknowledged) {
         console.error('Insertion not acknowledged by MongoDB');
       } else {
-        return order;
+        // Devolver la orden con la propiedad de inicio de preparación
+        const insertedOrder = { ...order, _id: result.insertedId, preparationStart: prepStartTime };
+        return insertedOrder;
       }
     } catch (error) {
       console.error('Error al crear la orden:', error);

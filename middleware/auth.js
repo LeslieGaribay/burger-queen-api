@@ -15,10 +15,18 @@ module.exports = (secret) => (req, resp, next) => {
     return next(); // Continuar al siguiente middleware sin enviar una respuesta
   }
 
-  jwt.verify(token, secret, (err, decodedToken) => {
+ jwt.verify(token, secret, (err, decodedToken) => {
     if (err) {
       return next(new AppError(403, 'No autorizado')); // Usar un objeto Error con mensaje
     }
+
+    // Agrega la información del usuario al objeto de solicitud
+    req.user = {
+      id: decodedToken.uid,
+      rol: decodedToken.rol,
+      userName: decodedToken.userName,
+    };
+
     return next(); // Continuar al siguiente middleware sin enviar una respuesta
   });
 };
